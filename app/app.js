@@ -2,20 +2,50 @@
     var express = require('express');
     var http = require('http');
     var path = require('path');
-    var config = require('config');
-    var log = require('libs/log')(module);
-
+    var config = require('./config');
+    //var log = require('./libs/log')(module);
     var app = express();
-    app.set('port', 1137);
     //app.set('port', config.get('port'));
 
-    http.createServer(app).listen(app.get('port'), function(){
+
+    app.set('templates', __dirname + '/templates');
+    app.set('view engine', 'ejs');
+    app.use(express.favicon()); // favicon.ico
+
+    if(app.get('env') == 'development'){
+        app.use(express.logger('dev')); // in out will be smth like GET / 404 10s
+    }
+    else{
+        app.use(express.logger('default'));
+    }
+
+    app.use(express.bodyParser());
+    app.use(express.cookieParser());
+    app.use(app.router);
+
+    /*app.get('/', function(req,res){
+        res.end("Test");
+    });*/
+
+    app.use(function(req,res){
+        //if(req.url == "/max"){
+            //res.end('Hey Max');
+            res.render("index", {
+                body: '<b>Hello</b>'
+            });
+        //}
+    });
+
+    //app.set('port', config.get('port'));
+
+    http.createServer(app).listen(config.get('port'), function(){
         //console.log('Express server listening on port ' + config.get('port'));
-        log.info('Express server listening on port ' + app.get('port'));
+        console.log('Express server listening on port ' + config.get('port'));
     });
 
     // Middleware
-    app.use(function(req, res, next) {
+
+    /*app.use(function(req, res, next) {
         if (req.url == '/') {
             res.end("Hello");
         } else {
@@ -41,9 +71,9 @@
 
     app.use(function(req, res) {
         res.send(404, "Page Not Found Sorry");
-    });
+    });*/
 
-    app.use(function(err, req, res, next) {
+    /*app.use(function(err, req, res, next) {
         // NODE_ENV = 'production'
         if (app.get('env') == 'development') {
             var errorHandler = express.errorHandler();
@@ -51,7 +81,7 @@
         } else {
             res.send(500);
         }
-    });
+    });*/
     /*
 
      var routes = require('./routes');
@@ -59,7 +89,7 @@
 
      // all environments
      app.set('port', process.env.PORT || 3000);
-     app.set('views', __dirname + '/views');
+     app.set('templates', __dirname + '/templates');
      app.set('view engine', 'ejs');
      app.use(express.favicon());
      app.use(express.logger('dev'));
